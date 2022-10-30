@@ -1,4 +1,4 @@
-import { ACCESS_TOKEN, EXPIRES_IN, TOKEN_TYPE } from "./common";
+import { ACCESS_TOKEN, EXPIRES_IN, TOKEN_TYPE, logout} from "./common";
 
 const BASE_API_URL = import.meta.env.VITE_API_BASE_URL;
 
