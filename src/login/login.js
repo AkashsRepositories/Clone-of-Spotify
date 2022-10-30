@@ -3,7 +3,6 @@ import { ACCESS_TOKEN, EXPIRES_IN, TOKEN_TYPE} from "../common";
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
 const APP_URL = import.meta.env.VITE_APP_URL;                  
 const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI;
-console.log(REDIRECT_URI);
 
 const SCOPES = 'user-read-private user-read-email';
 
@@ -16,8 +15,8 @@ window.addEventListener("load", () => {
         const current_url = window.location.hash;
         let params =  new URLSearchParams(current_url);
         localStorage.setItem(ACCESS_TOKEN, params.get("#access_token"));
-        localStorage.setItem(EXPIRES_IN, params.get("token_type"));
-        localStorage.setItem(TOKEN_TYPE, params.get("expires_in"));      
+        localStorage.setItem(TOKEN_TYPE, params.get("token_type"));
+        localStorage.setItem(EXPIRES_IN, Date.now() + parseInt(params.get("expires_in")*1000));  
     }
 
     access_token = localStorage.getItem(ACCESS_TOKEN);

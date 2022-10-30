@@ -11,7 +11,11 @@ module.exports = {
         'primary': '#ffffff',
         'secondary': '#b3b3b3',
         'gray': '#535353'
-      }
+      },
+      gridTemplateColumns: {
+        'auto-fill-cards': "repeat(auto-fill, minmax(200px, 1fr))"
+      },
+      
     },
   },
   plugins: [],

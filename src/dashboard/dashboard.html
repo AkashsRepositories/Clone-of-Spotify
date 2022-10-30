@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../style.css">
+    <script type="module" src="dashboard.js"></script>
     <title>Dashboard</title>
 </head>
 <body class="h-screen bg-black text-white">
@@ -12,7 +13,7 @@
         <aside class="sidenav">sidenav</aside>
         <section class="content">
             <header class="border-2 border-solid px-8 py-4">
-                <nav class="flex justify-end">
+                <nav class="flex justify-end relative">
                     <button id="user-profile-btn" class="flex items-center gap-x-2 rounded-2xl p-1 px-2 hover:bg-light-black">
                         <section>
                             <svg 
@@ -22,13 +23,21 @@
                               </svg>
                         </section>
                         <section class="flex justify-center gap-x-1">
-                            <h3>Akash</h3>
+                            <h3 id="display-name">User</h3>
                             <i>⛛</i>
                         </section>
                     </button>
+                    <ul id="profile-menu" class="hidden absolute top-12 right-0 w-[200px] rounded-md bg-light-black p-1">
+                        <li id="logout" class="w-full cursor-pointer rounded-md p-1 hover:bg-gray">logout</li>
+                    </ul>
                 </nav>
             </header>
-            <section>content</section>
+            <section class="p-4">
+                <h1 class="text-2xl">Featured</h1>
+                <section id="featured-playlist-items" class="featured-songs grid grid-cols-auto-fill-cards gap-4">
+                    <!-- featured playlists here - generated via js -->
+                </section>
+            </section>
         </section>
         <footer class="now-playing">
             now playing
