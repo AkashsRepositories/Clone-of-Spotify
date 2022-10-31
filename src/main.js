@@ -1,14 +1,12 @@
 import './style.css'
+const APP_URL = import.meta.env.VITE_APP_URL;
 
 let ACCESS_TOKEN = null;
 
-const LOGIN_PAGE = "login/login.html";
-const DASHBOARD_PAGE = "dashboard/dashboard.html";
-
 window.addEventListener("load", () => {
     if(ACCESS_TOKEN){
-        window.location.href = DASHBOARD_PAGE;
+        window.location.href = `${APP_URL}dashboard/dashboard.html`;
     } else {
-        window.location.href = LOGIN_PAGE;
+        window.location.href = `${APP_URL}login/login.html`;
     }
 })
