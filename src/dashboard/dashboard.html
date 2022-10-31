@@ -11,8 +11,8 @@
 <body class="h-screen bg-black text-white">
     <main class="h-full grid grid-template-areas grid-cols-[250px_1fr] grid-rows-[1fr_auto]">
         <aside class="sidenav">sidenav</aside>
-        <section class="content">
-            <header class="border-2 border-solid px-8 py-4">
+        <section class="content bg-black-base">
+            <header class="border-2 border-solid px-8 py-4 bg-transparent">
                 <nav class="flex justify-end relative">
                     <button id="user-profile-btn" class="flex items-center gap-x-2 rounded-2xl p-1 px-2 hover:bg-light-black">
                         <section>
@@ -32,12 +32,11 @@
                     </ul>
                 </nav>
             </header>
-            <section class="p-4">
-                <h1 class="text-2xl">Featured</h1>
-                <section id="featured-playlist-items" class="featured-songs grid grid-cols-auto-fill-cards gap-4">
-                    <!-- featured playlists here - generated via js -->
-                </section>
+
+            <section id="page-content">
+                <!-- all playlists here -->
             </section>
+            
         </section>
         <footer class="now-playing">
             now playing
