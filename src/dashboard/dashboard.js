@@ -95,14 +95,29 @@ const formatTime = (duration) => {
     return  formattedTime;
 }
 
+const onTrackSelection = (id, event) => {
+    document.querySelectorAll("#tracks .track").forEach(trackItem => {
+        if(trackItem.id === id){
+            trackItem.classList.add("bg-gray", "selected");
+        } else {
+            trackItem.classList.remove("bg-gray", "selected");
+        }
+    });
+}
+
+const onPlayTrack = (event, image, artistNames, name, duration, previewUrl, id) => {
+    console.log(event, image, artistNames, name, duration, previewUrl, id);
+}
+
 const loadPlaylistTracks = ({ tracks }) => {
     const trackSections = document.querySelector("#tracks");
 
     let trackNumber = 1;
     for(let trackItem of tracks.items) {
-        let {id, artists, name, album, duration_ms: duration} = trackItem.track;
+        let {id, artists, name, album, duration_ms: duration, preview_url: previewUrl} = trackItem.track;
         let track = document.createElement('section');
         track.id = id;
+        let artistNames = Array.from(artists, artist=> artist.name).join(", ");
         track.className = "track p-1 grid grid-cols-[50px_1fr_1fr_50px] items-center justify-items-start rounded-md gap-4 text-secondary hover:bg-light-black cursor-pointer";
         let image = album.images.find(img=> img.height === 64);
         track.innerHTML = `
@@ -111,16 +126,21 @@ const loadPlaylistTracks = ({ tracks }) => {
                     <img class="h-10 w-10" src="${image.url}" alt="${name}">
                     <article class="flex flex-col gap-1 justify-center">
                         <h2 class="text-base text-primary line-clamp-1">${name}</h2>
-                        <p class="text-xs line-clamp-1">${Array.from(artists, artist=> artist.name).join(", ")}</p>
+                        <p class="text-xs line-clamp-1">${artistNames}</p>
                     </article>
                 </section>
                 <p class="text-sm line-clamp-1">${album.name}</p>
                 <p class="text-sm">${formatTime(duration)}</p>
         `;
+
+        track.addEventListener("click", (event) => onTrackSelection(id, event));
+
         const playButton = document.createElement("button");
         playButton.id = `play-track${id}`;
         playButton.className = "play w-full absolute left-0 text-lg invisible";
         playButton.innerHTML = `▶`;   
+        //play song when clicked on this
+        playButton.addEventListener("click", (event) => onPlayTrack(event, image, artistNames, name, duration, previewUrl, id));
         track.querySelector("p").appendChild(playButton);
 
         trackSections.append(track);

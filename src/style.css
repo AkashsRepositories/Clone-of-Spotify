@@ -20,10 +20,12 @@
     grid-area: now-playing;
 }
 
-.track:hover .track-no{
+.track:hover .track-no,
+.track.selected .track-no{
     visibility: hidden;
 }
 
-.track:hover .play{
+.track:hover .play,
+.track.selected .play{
     visibility: visible;
 }
