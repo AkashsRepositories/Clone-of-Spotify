@@ -1,6 +1,15 @@
 import { fetchRequest } from "../api";
 import { ENDPOINT, logout, SECTIONTYPE } from "../common";
 
+const audio = new Audio();
+const volume = document.querySelector('#volume');
+const playButton = document.querySelector('#play');
+const totalSongDuration = document.querySelector('#total-song-duration');
+const songDurationCompleted = document.querySelector("#song-duration-completed");
+const songProgress = document.querySelector('#progress');
+const timeline = document.querySelector('#timeline');
+let progressInterval;
+
 const onProfileClick = (event) => {
     //to stop this click to be registered for document as well
     event.stopPropagation();
@@ -105,8 +114,73 @@ const onTrackSelection = (id, event) => {
     });
 }
 
-const onPlayTrack = (event, image, artistNames, name, duration, previewUrl, id) => {
-    console.log(event, image, artistNames, name, duration, previewUrl, id);
+const updateIconsForPlayMode = (id) => {
+    const playButtonFromTracks = document.querySelector(`#play-track${id}>span`);
+    playButtonFromTracks.textContent = "pause";
+    playButtonFromTracks.setAttribute("data-play");
+    playButton.querySelector("span").textContent = "pause_circle";
+}
+
+const updateIconsForPauseMode = (id) => {
+    const playButtonFromTracks = document.querySelector(`#play-track${id}>span`);
+    playButtonFromTracks.textContent = "play_arrow";
+    playButtonFromTracks.removeAttribute("data-play");
+    playButton.querySelector("span").textContent = "play_circle";
+}
+
+const onAudioMetaDataLoaded = (id) => {
+
+    totalSongDuration.textContent = `0:${audio.duration.toFixed(0)}`;
+    playButton.querySelector("span").textContent = "pause_circle";
+    updateIconsForPlayMode(id);
+}
+
+const onNowPlayingButtonClicked = (id) => {
+    if(audio.paused){
+        audio.play();
+        updateIconsForPlayMode(id);
+    } else {
+        audio.pause();
+        updateIconsForPauseMode(id);
+    }
+}
+
+const onPlayTrack = (event, { image, artistNames, name, duration, previewUrl, id }) => {
+    const button = event.target;
+    if(button.getAttribute("data-play")){
+        audio.pause();
+        updateIconsForPauseMode(id);
+        return;
+    }
+    //for reference
+    // <img id="now-playing-image" class="h-12 w-12" src="" alt="">
+    //                 <section class="flex flex-col justify-center">
+    //                     <h2 id="now-playing-song" class="text-sm text-primary font-semibold">song title</h2>
+    //                     <p id="now-playing-artist" class="text-xs">song artists</p>
+    //                 </section>
+    const nowPlayingSongImage = document.querySelector("#now-playing-image");
+    const songTitle = document.querySelector("#now-playing-song");
+    const artists = document.querySelector("#now-playing-artist");
+
+    songTitle.textContent = name;
+    artists.textContent = artistNames;
+    nowPlayingSongImage.src = image.url;
+
+    audio.src = previewUrl;
+    audio.removeEventListener("loadedmetadata", ()=> onAudioMetaDataLoaded(id));
+    audio.addEventListener("loadedmetadata", () => onAudioMetaDataLoaded(id));
+    playButton.addEventListener("click",  () => onNowPlayingButtonClicked(id)); 
+    audio.play();
+
+    clearInterval(progressInterval);
+    // timeline.addEventListener("click", )
+    progressInterval = setInterval(() => {
+        if(audio.paused) return;
+        //time needs to be formatted for minutes. works for seconds currently
+        songDurationCompleted.textContent =  `0:${audio.currentTime.toFixed(0) < 10? "0"+audio.currentTime.toFixed(0): audio.currentTime.toFixed(0)}`;
+        songProgress.style.width = `${(audio.currentTime.toFixed(0) / audio.duration) * 100}%`  ;
+    }, 100);
+    
 }
 
 const loadPlaylistTracks = ({ tracks }) => {
@@ -138,9 +212,13 @@ const loadPlaylistTracks = ({ tracks }) => {
         const playButton = document.createElement("button");
         playButton.id = `play-track${id}`;
         playButton.className = "play w-full absolute left-0 text-lg invisible";
-        playButton.innerHTML = `▶`;   
+        playButton.innerHTML = `
+            <span class="material-symbols-outlined">
+                play_arrow
+            </span>
+        `;   
         //play song when clicked on this
-        playButton.addEventListener("click", (event) => onPlayTrack(event, image, artistNames, name, duration, previewUrl, id));
+        playButton.addEventListener("click", (event) => onPlayTrack(event, { image, artistNames, name, duration, previewUrl, id }));
         track.querySelector("p").appendChild(playButton);
 
         trackSections.append(track);
@@ -149,6 +227,16 @@ const loadPlaylistTracks = ({ tracks }) => {
 
 const fillContentForPlaylist = async (playlistId) => {
     const playlist = await fetchRequest(`${ENDPOINT.playlist}/${playlistId}`);
+    const {name, description, images, tracks} = playlist;
+    const coverElement = document.querySelector("#cover-content");
+    coverElement.innerHTML = `
+        <img class="object-contain h-52 w-52" src="${images[0].url}" alt="">
+        <section class="grid">
+            <h2 id="playlist-name" class="text-4xl">${name}</h2> 
+            <p id="playlist-description">${description}</p> 
+            <p id="playlist-details">${tracks.items.length} songs</p>
+        </section>
+    `;
     const pageContent = document.querySelector('#page-content');
     pageContent.innerHTML = `
         <header id="playlist-header" class="mx-8 py-4 border-secondary border-b-[0.5px] z-10">
@@ -226,6 +314,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    //for volume control
+    volume.addEventListener("change", () => {
+        audio.volume = volume.value / 100; // from 0 to 1
+    })
+
+    //for seeking while playing song
+    timeline.addEventListener("click", (e)=> {
+        const timelineWidth = window.getComputedStyle(timeline).width;
+        const timeToSeek = (e.offsetX / parseInt(timelineWidth)) * audio.duration;
+        audio.currentTime = timeToSeek;
+        songProgress.style.width = `${(audio.currentTime / audio.duration) * 100}%`;
+    }, false)
 
     //when user clicks on back button of browser - popstate event is triggered
     window.addEventListener('popstate', (event)=>{
