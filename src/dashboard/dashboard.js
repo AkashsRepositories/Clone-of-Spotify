@@ -43,7 +43,7 @@ const loadPlaylist  = async (endpoint, elementId) => {
 
     for(let {name, id, description, images:[{url}]} of items){
         const currentSection = document.createElement("section");
-        currentSection.className= "rounded bg-secondary-black p-4 hover:cursor-pointer hover:bg-light-black";
+        currentSection.className= "rounded bg-black-secondary p-4 hover:cursor-pointer hover:bg-light-black";
         currentSection.id = id;
         currentSection.setAttribute("data-type", "playlist");
         //adding click event on playlist card
@@ -95,28 +95,53 @@ const formatTime = (duration) => {
     return  formattedTime;
 }
 
+const onTrackSelection = (id, event) => {
+    document.querySelectorAll("#tracks .track").forEach(trackItem => {
+        if(trackItem.id === id){
+            trackItem.classList.add("bg-gray", "selected");
+        } else {
+            trackItem.classList.remove("bg-gray", "selected");
+        }
+    });
+}
+
+const onPlayTrack = (event, image, artistNames, name, duration, previewUrl, id) => {
+    console.log(event, image, artistNames, name, duration, previewUrl, id);
+}
+
 const loadPlaylistTracks = ({ tracks }) => {
     const trackSections = document.querySelector("#tracks");
 
     let trackNumber = 1;
     for(let trackItem of tracks.items) {
-        let {id, artists, name, album, duration_ms: duration} = trackItem.track;
+        let {id, artists, name, album, duration_ms: duration, preview_url: previewUrl} = trackItem.track;
         let track = document.createElement('section');
         track.id = id;
-        track.className = "track p-1 grid grid-cols-[50px_2fr_1fr_50px] items-center justify-items-start rounded-md gap-4 text-secondary hover:bg-light-black cursor-pointer";
+        let artistNames = Array.from(artists, artist=> artist.name).join(", ");
+        track.className = "track p-1 grid grid-cols-[50px_1fr_1fr_50px] items-center justify-items-start rounded-md gap-4 text-secondary hover:bg-light-black cursor-pointer";
         let image = album.images.find(img=> img.height === 64);
         track.innerHTML = `
-                <p class="justify-self-center">${trackNumber++}</p>
+                <p class="relative w-full flex items-center justify-center justify-self-center"><span class="track-no">${trackNumber++}<span></p>
                 <section class="grid grid-cols-[auto_1fr] place-items-center gap-2">
-                    <img class="h-8 w-8" src="${image.url}" alt="${name}">
-                    <article class="flex flex-col">
-                        <h2 class="text-primary text-xl">${name}</h2>
-                        <p class="text-sm">${Array.from(artists, artist=> artist.name).join(", ")}</p>
+                    <img class="h-10 w-10" src="${image.url}" alt="${name}">
+                    <article class="flex flex-col gap-1 justify-center">
+                        <h2 class="text-base text-primary line-clamp-1">${name}</h2>
+                        <p class="text-xs line-clamp-1">${artistNames}</p>
                     </article>
                 </section>
-                <p>${album.name}</p>
-                <p>${formatTime(duration)}</p>
-        `
+                <p class="text-sm line-clamp-1">${album.name}</p>
+                <p class="text-sm">${formatTime(duration)}</p>
+        `;
+
+        track.addEventListener("click", (event) => onTrackSelection(id, event));
+
+        const playButton = document.createElement("button");
+        playButton.id = `play-track${id}`;
+        playButton.className = "play w-full absolute left-0 text-lg invisible";
+        playButton.innerHTML = `▶`;   
+        //play song when clicked on this
+        playButton.addEventListener("click", (event) => onPlayTrack(event, image, artistNames, name, duration, previewUrl, id));
+        track.querySelector("p").appendChild(playButton);
 
         trackSections.append(track);
     }
@@ -126,9 +151,9 @@ const fillContentForPlaylist = async (playlistId) => {
     const playlist = await fetchRequest(`${ENDPOINT.playlist}/${playlistId}`);
     const pageContent = document.querySelector('#page-content');
     pageContent.innerHTML = `
-        <header id="playlist-header" class="px-8 py-4">
-            <nav>
-                <ul class="grid grid-cols-[50px_2fr_1fr_50px] gap-4 text-secondary ">
+        <header id="playlist-header" class="mx-8 py-4 border-secondary border-b-[0.5px] z-10">
+            <nav py-2>
+                <ul class="grid grid-cols-[50px_1fr_1fr_50px] gap-4 text-secondary ">
                     <li class="justify-self-center">#</li>
                     <li>Title</li>                                                                                  
                     <li>Album</li>
@@ -136,7 +161,7 @@ const fillContentForPlaylist = async (playlistId) => {
                 </ul>
             </nav>
         </header>
-        <section class="px-8 text-secondary" id="tracks">
+        <section class="px-8 text-secondary mt-4" id="tracks">
         </section>
     `;
 
@@ -162,7 +187,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUserProfile(); 
 
     //load section
-    const section = {type: SECTIONTYPE.DASHBOARD};
+    // const section = {type: SECTIONTYPE.DASHBOARD};
+    // playlists/37i9dQZF1DWZdcdjsv83gQ
+    const section = {type: SECTIONTYPE.PLAYLIST, playlist: '37i9dQZF1DWZdcdjsv83gQ'};
     history.pushState(section, "", "");
     loadSection(section);  //temporarily commented out 
 
@@ -177,18 +204,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const { scrollTop } = event.target;
         const header = document.querySelector(".header");
         if(scrollTop >= header.offsetHeight){
-            header.classList.add("sticky", "top-0", "bg-secondary-black");
+            header.classList.add("sticky", "top-0", "bg-black");
             header.classList.remove("bg-transparent");
         } else {
             header.classList.add("bg-transparent");
-            header.classList.remove("sticky", "top-0", "bg-secondary-black");
+            header.classList.remove("sticky", "top-0", "bg-black");
         }
 
         if(history.state.type === SECTIONTYPE.PLAYLIST){
             //if current section is playlist - only then
+            const coverElement = document.querySelector("#cover-content");          
             const playlistHeader = document.querySelector("#playlist-header");
-            if(scrollTop >= playlistHeader.offsetHeight){
-                playlistHeader.classList.add("sticky",  `top-[${header.offsetHeight}px]`, "bg-black-base");
+            if(scrollTop >= coverElement.offsetHeight - header.offsetHeight){
+                playlistHeader.classList.add("sticky", "bg-black-secondary",  "px-8");
+                playlistHeader.classList.remove("mx-8");
+                playlistHeader.style.top = `${header.offsetHeight}px`;
+            } else {
+                playlistHeader.classList.remove("sticky", "bg-black-secondary",  "px-8");
+                playlistHeader.classList.add("mx-8");
+                playlistHeader.style.top = "revert";
             }
         }
     });
