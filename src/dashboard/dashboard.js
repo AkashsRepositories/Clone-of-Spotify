@@ -151,7 +151,7 @@ const fillContentForPlaylist = async (playlistId) => {
     const playlist = await fetchRequest(`${ENDPOINT.playlist}/${playlistId}`);
     const pageContent = document.querySelector('#page-content');
     pageContent.innerHTML = `
-        <header id="playlist-header" class="mx-8 py-4 border-secondary border-b-[0.5px]">
+        <header id="playlist-header" class="mx-8 py-4 border-secondary border-b-[0.5px] z-10">
             <nav py-2>
                 <ul class="grid grid-cols-[50px_1fr_1fr_50px] gap-4 text-secondary ">
                     <li class="justify-self-center">#</li>
