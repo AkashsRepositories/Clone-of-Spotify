@@ -138,9 +138,10 @@ const onTrackSelection = (id, event) => {
     });
 }
 
-const updateIconsForPlayMode = (id) => {
+const updateIconsForPlayMode =  (id) => {
     const playButton = document.querySelector("#play>span");
-    const playButtonFromTracks = document.querySelector(`#play-track-${id}>span`);
+    const playButtonFromTracks = document.querySelector(`#play-track-${id}`);
+    console.log(playButtonFromTracks, id)
     if(playButtonFromTracks)
         playButtonFromTracks.textContent = "pause";
     playButton.textContent = "pause_circle";
@@ -148,17 +149,18 @@ const updateIconsForPlayMode = (id) => {
 
 const updateIconsForPauseMode = (id) => {
     const playButton = document.querySelector("#play>span");
-    const playButtonFromTracks = document.querySelector(`#play-track-${id}>span`);
+    const playButtonFromTracks = document.querySelector(`#play-track-${id}`);
+
     if(playButtonFromTracks)
         playButtonFromTracks.textContent = "play_arrow";
     playButton.textContent = "play_circle";
 }
 
 const onAudioMetaDataLoaded = (id) => {
+    const playButton = document.querySelector("#play>span");
     const totalSongDuration = document.querySelector('#total-song-duration');
     totalSongDuration.textContent = `0:${audio.duration.toFixed(0)}`;
-    playButton.querySelector("span").textContent = "pause_circle";
-    updateIconsForPlayMode(id);
+    playButton.textContent = "pause_circle";
 }
 
 const findCurrentTrack = () => {
@@ -189,7 +191,7 @@ const playNextTrack = () => {
 
 const togglePlay = () => {
     if(audio.src){
-        if(audio.pause){
+        if(audio.paused){
             audio.play();
         } else {
             audio.pause();
@@ -198,11 +200,15 @@ const togglePlay = () => {
 }
 
 const playTrack = (event, { image, artistNames, name, duration, previewUrl, id }) => {
-    if(event?.stopPropagation){
-        event.stopPropagation();
-    }
+    // if(event?.stopPropagation){
+    //     event.stopPropagation();
+    // }
+    console.log(audio.src +" space " + previewUrl)
+    if(audio?.src === previewUrl){
+    console.log(audio.src +"   space " + previewUrl)
 
-    if(audio.src == previewUrl) togglePlay();
+        togglePlay();
+    } 
     else {
 
         const nowPlayingSongImage = document.querySelector("#now-playing-image");
@@ -249,6 +255,7 @@ const loadPlaylistTracks = ({ tracks }) => {
 
         const playButton = document.createElement("button");
         playButton.id = `play-track-${id}`;
+        console.log(playButton.id)
         playButton.className = "play w-full absolute left-0 text-lg invisible material-symbols-outlined";
         playButton.textContent = "play_arrow";
 
@@ -396,7 +403,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateIconsForPauseMode(selectedTrackId);
     })
 
-    audio.addEventListener("loadedmetadata", onAudioMetaDataLoaded);
+    const selectedTrackId = audioControl.getAttribute("data-track-id");
+    audio.addEventListener("loadedmetadata", () => onAudioMetaDataLoaded(selectedTrackId));
     playButton.addEventListener("click",  togglePlay); 
 
     //for prev and next - changing songs via buttons
